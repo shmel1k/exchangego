@@ -1,0 +1,55 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "/mBsPOwk9RlWvxp2QG+23SEh0nU=",
+			"path": "github.com/gobwas/httphead",
+			"revision": "d8ef83dd38eff6fae44a0397340fd8a42ffd6664",
+			"revisionTime": "2017-07-17T15:40:33Z"
+		},
+		{
+			"checksumSHA1": "k2JgfxkzNCBHYQjcLq7kQmmNTCE=",
+			"path": "github.com/gobwas/pool",
+			"revision": "bd45add59ac962618ccb007459d004f1cf1a65cd",
+			"revisionTime": "2017-08-15T17:19:17Z"
+		},
+		{
+			"checksumSHA1": "xSilIRcQJFjJVaVl1e2oRqsjeeg=",
+			"path": "github.com/gobwas/pool/pbufio",
+			"revision": "bd45add59ac962618ccb007459d004f1cf1a65cd",
+			"revisionTime": "2017-08-15T17:19:17Z"
+		},
+		{
+			"checksumSHA1": "flVRvgd7gbSq+Md+r/Og1m3i7VI=",
+			"path": "github.com/gobwas/ws",
+			"revision": "e76b8ddad654b65e621175732059786ae714ebbf",
+			"revisionTime": "2017-08-13T20:18:07Z"
+		},
+		{
+			"checksumSHA1": "swtZN0ghCWHLjgvmyMjeBWUqVMs=",
+			"path": "github.com/mailru/easyjson",
+			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
+			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "T8soMJArSZrYnhmdpAnq1bVxQ6Q=",
+			"path": "github.com/mailru/easyjson/buffer",
+			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
+			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "Xw5HIdQ2vlr5wkKl+8ANM9xp5Zs=",
+			"path": "github.com/mailru/easyjson/jlexer",
+			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
+			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "tMeVsfYgDW9K0spDZkOBlvZYssw=",
+			"path": "github.com/mailru/easyjson/jwriter",
+			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
+			"revisionTime": "2017-06-24T19:09:26Z"
+		}
+	],
+	"rootPath": "github.com/shmel1k/exchangego"
+}
