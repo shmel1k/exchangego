@@ -3,6 +3,22 @@
 	"ignore": "test",
 	"package": [
 		{
+			"path": "appengine/cloudsql",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "i3UtE7/Cn57eX1hO5Z0CqY/Eeb4=",
+			"path": "github.com/go-sql-driver/mysql",
+			"revision": "3955978caca48c1658a4bb7a9c6a0f084e326af3",
+			"revisionTime": "2017-07-15T19:24:08Z"
+		},
+		{
+			"checksumSHA1": "sxluRJHmkjYbZbKN2Ol9V86quHU=",
+			"path": "github.com/go-yaml/yaml",
+			"revision": "bec87e4332aede01fb63a4ab299d8af28480cd96",
+			"revisionTime": "2014-09-22T21:32:25Z"
+		},
+		{
 			"checksumSHA1": "/mBsPOwk9RlWvxp2QG+23SEh0nU=",
 			"path": "github.com/gobwas/httphead",
 			"revision": "d8ef83dd38eff6fae44a0397340fd8a42ffd6664",
@@ -49,6 +65,16 @@
 			"path": "github.com/mailru/easyjson/jwriter",
 			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
 			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "RDJpJQwkF012L6m/2BJizyOksNw=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "eb3733d160e74a9c7e442f435eb3bea458e1d19f",
+			"revisionTime": "2017-08-12T16:00:11Z"
+		},
+		{
+			"path": "https://github.com/go-yaml/yaml",
+			"revision": ""
 		}
 	],
 	"rootPath": "github.com/shmel1k/exchangego"

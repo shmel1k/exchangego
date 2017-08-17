@@ -7,6 +7,9 @@ all: build
 clean:
 		rm -rf bin/
 
+run:
+	bin/exchangego
+
 copy:
 	cp .root/src/$(PKG)/exchangego
 
