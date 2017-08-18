@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/errs"
 )
 
@@ -12,7 +13,7 @@ type Response struct {
 	Body   interface{} `json:"body"`
 }
 
-func WriteOK(w http.ResponseWriter, data interface{}) {
+func WriteOK(ctx *context.Context, data interface{}) {
 	// FIXME(shmel1k): add easyjson or something like that
 	r := Response{
 		Status: http.StatusOK,
@@ -20,8 +21,8 @@ func WriteOK(w http.ResponseWriter, data interface{}) {
 	}
 	dt, err := json.Marshal(r)
 	if err != nil {
-		errs.WriteInternal(w)
+		errs.WriteInternal(ctx.HTTPResponseWriter())
 		return
 	}
-	w.Write(dt)
+	ctx.HTTPResponseWriter().Write(dt)
 }

@@ -23,10 +23,15 @@ func WriteInternal(w http.ResponseWriter) {
 }
 
 func WriteError(w http.ResponseWriter, err error) {
-	data, err1 := json.Marshal(err)
-	if err1 != nil {
-		WriteInternal(w)
+	if v, ok := err.(Error); ok {
+		data, err1 := json.Marshal(v)
+		if err1 != nil {
+			WriteInternal(w)
+			return
+		}
+		w.WriteHeader(v.Status)
+		w.Write(data)
 		return
 	}
-	w.Write(data)
+	WriteInternal(w)
 }
