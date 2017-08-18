@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/database"
 	"github.com/shmel1k/exchangego/exchange"
+	"github.com/shmel1k/exchangego/exchange/session/context"
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,14 +27,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Password: password,
 	})
 
-	// FIXME(a.petrukhin): add ctxlog!
 	switch {
 	case err != nil:
 		log.Printf("[%s]: error %s", ctx.User().Name, err)
 		errs.WriteError(ctx.HTTPResponseWriter(), err)
 		return
 	}
-	exchange.WriteOK(ctx, resp)
+	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
 }
 
 type RegisterRequest struct {
@@ -45,7 +44,7 @@ type RegisterRequest struct {
 type RegisterResponse struct {
 }
 
-func Register(ctx *context.Context, param RegisterRequest) (RegisterResponse, error) {
+func Register(ctx *context.ExContext, param RegisterRequest) (RegisterResponse, error) {
 	var err error
 	u := ctx.User()
 	if u.Name != "" {
@@ -57,7 +56,7 @@ func Register(ctx *context.Context, param RegisterRequest) (RegisterResponse, er
 		return RegisterResponse{}, err
 	}
 
-	_, err = database.AddUser(param.Login, param.Password)
+	_, err = database.AddUser(ctx, param.Login, param.Password)
 	if err != nil {
 		if err == database.ErrUserExists {
 			return RegisterResponse{}, errs.Error{

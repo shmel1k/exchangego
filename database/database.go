@@ -10,6 +10,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/shmel1k/exchangego/config"
+	"github.com/shmel1k/exchangego/context"
+	"github.com/shmel1k/exchangego/exchange"
 )
 
 const (
@@ -41,50 +43,43 @@ func initClient() {
 	})
 }
 
-type User struct {
-	ID               uint32
-	Name             string
-	Password         string
-	RegistrationDate time.Time
-}
-
-func FetchUser(user, password string) (User, error) {
+func FetchUser(ctx context.Context, user string) (exchange.User, error) {
 	initClient()
 	// XXX(shmel1k): fix registration_date in scanning
 	q := fmt.Sprintf("SELECT id, name, password FROM users WHERE name = ?")
 	resp, err := db.Query(q, user)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 
-	var u User
+	var u exchange.User
 	for resp.Next() {
 		err = resp.Scan(&u.ID, &u.Name, &u.Password)
 		if err != nil {
-			return User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
+			return exchange.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
 		}
 	}
 
 	return u, nil
 }
 
-func AddUser(user, password string) (User, error) {
+func AddUser(ctx context.Context, user, password string) (exchange.User, error) {
 	initClient()
 
 	q := fmt.Sprint("SELECT COUNT(*) FROM users WHERE name = ?")
 	resp, err := db.Query(q, user)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 
 	var cnt uint32
 	for resp.Next() {
 		err = resp.Scan(&cnt)
 		if err != nil {
-			return User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
+			return exchange.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
 		}
 		if cnt != 0 {
-			return User{}, ErrUserExists
+			return exchange.User{}, ErrUserExists
 		}
 	}
 
@@ -92,11 +87,11 @@ func AddUser(user, password string) (User, error) {
 	t := time.Now()
 	_, err = db.Query(q, user, password, t)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 
 	// FIXME(shmel1k): add UserID
-	return User{
+	return exchange.User{
 		ID:               0,
 		Name:             user,
 		Password:         password,

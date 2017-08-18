@@ -3,17 +3,24 @@ package exchange
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
-	"github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/errs"
 )
+
+type User struct {
+	ID               uint32
+	Name             string
+	Password         string
+	RegistrationDate time.Time
+}
 
 type Response struct {
 	Status int         `json:"status"`
 	Body   interface{} `json:"body"`
 }
 
-func WriteOK(ctx *context.Context, data interface{}) {
+func WriteOK(w http.ResponseWriter, data interface{}) {
 	// FIXME(shmel1k): add easyjson or something like that
 	r := Response{
 		Status: http.StatusOK,
@@ -21,8 +28,8 @@ func WriteOK(ctx *context.Context, data interface{}) {
 	}
 	dt, err := json.Marshal(r)
 	if err != nil {
-		errs.WriteInternal(ctx.HTTPResponseWriter())
+		errs.WriteInternal(w)
 		return
 	}
-	ctx.HTTPResponseWriter().Write(dt)
+	w.Write(dt)
 }

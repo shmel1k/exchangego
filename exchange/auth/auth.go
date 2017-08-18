@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/exchange"
+	"github.com/shmel1k/exchangego/exchange/session/context"
 )
 
 const (
@@ -38,21 +38,32 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		errs.WriteError(w, err)
 		return
 	}
-	resp, err := Authorize(ctx, AuthorizeRequest{
-		Login:    r.URL.Query().Get("Login"),
-		Password: r.URL.Query().Get("Password"),
-	})
+	defer func() {
+		ctx.Exit(recover())
+	}()
 
+	login := r.URL.Query().Get("Login")
+	pass := r.URL.Query().Get("Password")
+	resp, err := Authorize(ctx, AuthorizeRequest{
+		Login:    login,
+		Password: pass,
+	})
 	switch {
 	case err != nil:
 		log.Printf("[%s]: error %s", ctx.User().Name, err)
 		errs.WriteError(ctx.HTTPResponseWriter(), err)
 		return
 	}
-	exchange.WriteOK(ctx, resp)
+	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
 }
 
-func Authorize(ctx *context.Context, req AuthorizeRequest) (AuthorizeResponse, error) {
+func Authorize(ctx *context.ExContext, req AuthorizeRequest) (AuthorizeResponse, error) {
+	if req.Login == "" {
+		return AuthorizeResponse{}, errs.Error{
+			Status: http.StatusForbidden,
+			Err:    "invalid login",
+		}
+	}
 	if ctx.User().Password != req.Password {
 		return AuthorizeResponse{}, errs.Error{
 			Status: http.StatusForbidden,
@@ -75,7 +86,7 @@ func Authorize(ctx *context.Context, req AuthorizeRequest) (AuthorizeResponse, e
 	return AuthorizeResponse{}, nil
 }
 
-func GenerateCookie(ctx *context.Context) (string, error) {
+func GenerateCookie(ctx *context.ExContext) (string, error) {
 	buf := make([]byte, 0, 32)
 	buf = append(buf, ctx.User().Name...)
 	buf = append(buf, ':')
