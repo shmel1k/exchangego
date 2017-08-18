@@ -1,4 +1,3 @@
-Add context.Done() for timeouts
-Copy incoming http request headers to response.
-Add nginx.
-implement X-Request-Id in nginx
+1. Copy incoming http request headers to response.
+2. Add nginx.
+3. Implement contextlog on request output as access log

@@ -11,4 +11,5 @@ type Context interface {
 	HTTPResponseWriter() http.ResponseWriter
 	HTTPRequest() *http.Request
 	LogPrefix() string
+	RequestID() string
 }

@@ -2,6 +2,8 @@ package context
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"net/http"
 	"sync"
 
@@ -23,9 +25,10 @@ type RequestScope struct {
 	mu       sync.Mutex
 	deferred []func()
 
-	request *http.Request
-	writer  http.ResponseWriter
-	user    exchange.User
+	request   *http.Request
+	requestID string
+	writer    http.ResponseWriter
+	user      exchange.User
 }
 
 func withCancel(w http.ResponseWriter, r *http.Request) (*ExContext, context.CancelFunc) {
@@ -78,18 +81,35 @@ func (ctx *ExContext) Exit(panc interface{}) {
 	}
 }
 
-func (c *ExContext) HTTPResponseWriter() http.ResponseWriter {
-	return c.scope.writer
+func (ctx *ExContext) HTTPResponseWriter() http.ResponseWriter {
+	return ctx.scope.writer
 }
 
-func (c *ExContext) HTTPRequest() *http.Request {
-	return c.scope.request
+func (ctx *ExContext) HTTPRequest() *http.Request {
+	return ctx.scope.request
 }
 
-func (c *ExContext) User() exchange.User {
-	return c.scope.user
+func (ctx *ExContext) User() exchange.User {
+	return ctx.scope.user
 }
 
-func (c *ExContext) LogPrefix() string {
-	return c.prefix
+func (ctx *ExContext) LogPrefix() string {
+	return ctx.prefix
+}
+
+func (ctx *ExContext) RequestID() string {
+	return ctx.scope.requestID
+}
+
+func (ctx *ExContext) setLogPrefix() {
+	rid := ctx.HTTPRequest().Header.Get("Request-Id")
+	if rid == "" {
+		rid = newRequestID()
+	}
+	ctx.scope.requestID = rid
+	ctx.prefix = fmt.Sprintf("[request_id=%s login=%s]", rid, ctx.User().Name)
+}
+
+func newRequestID() string {
+	return fmt.Sprintf("%08x%08x", rand.Uint32(), rand.Uint32())
 }

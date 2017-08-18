@@ -29,7 +29,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case err != nil:
-		log.Printf("[%s]: error %s", ctx.User().Name, err)
 		errs.WriteError(ctx.HTTPResponseWriter(), err)
 		return
 	}
