@@ -1,7 +1,6 @@
 package register
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/shmel1k/exchangego/context/errs"
@@ -13,7 +12,6 @@ import (
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, err := context.InitFromHTTP(w, r)
 	if err != nil {
-		log.Println(err)
 		errs.WriteError(w, err)
 		return
 	}
@@ -29,7 +27,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case err != nil:
-		errs.WriteError(ctx.HTTPResponseWriter(), err)
+		ctx.WriteError(err)
 		return
 	}
 	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
@@ -45,22 +43,15 @@ type RegisterResponse struct {
 
 func Register(ctx *context.ExContext, param RegisterRequest) (RegisterResponse, error) {
 	var err error
-	u := ctx.User()
-	if u.Name != "" {
-		// XXX(a.petrukhin): add context logging.
-		err = errs.Error{
-			Status: http.StatusForbidden,
-			Err:    "forbidden",
-		}
+	if err = ctx.InitUser(); err != nil {
 		return RegisterResponse{}, err
 	}
-
 	_, err = database.AddUser(ctx, param.Login, param.Password)
 	if err != nil {
 		if err == database.ErrUserExists {
 			return RegisterResponse{}, errs.Error{
 				Status: http.StatusForbidden,
-				Err:    "forbidden",
+				Err:    "user exists",
 			}
 		}
 		return RegisterResponse{}, err

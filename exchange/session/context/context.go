@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	cntxt "github.com/shmel1k/exchangego/context"
+	"github.com/shmel1k/exchangego/context/contextlog"
+	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/database"
 	"github.com/shmel1k/exchangego/exchange"
 )
@@ -18,7 +20,9 @@ type ExContext struct {
 
 	scope RequestScope
 
-	prefix string
+	responseStatus  int
+	responseMessage string
+	prefix          string
 }
 
 type RequestScope struct {
@@ -46,8 +50,26 @@ func withCancel(w http.ResponseWriter, r *http.Request) (*ExContext, context.Can
 func InitFromHTTP(w http.ResponseWriter, r *http.Request) (*ExContext, error) {
 	ctx, cancel := withCancel(w, r)
 	ctx.Defer(cancel)
+	ctx.Defer(ctx.writeAccessLog)
+	defer func() {
+		ctx.setLogPrefix()
+	}()
 
 	return ctx, nil
+}
+
+func (ctx *ExContext) InitUser() error {
+	login := ctx.scope.request.URL.Query().Get("Login")
+	if login == "" {
+		return errs.ErrUserNotExists
+	}
+	err := ctx.fetchUser(login)
+	if err != nil {
+		return err
+	}
+
+	ctx.setLogPrefix()
+	return nil
 }
 
 func (ctx *ExContext) fetchUser(user string) error {
@@ -56,6 +78,9 @@ func (ctx *ExContext) fetchUser(user string) error {
 		return err
 	}
 	ctx.scope.user = u
+	if u.Name == "" {
+		return errs.ErrUserNotExists
+	}
 	return nil
 }
 
@@ -71,6 +96,7 @@ func (ctx *ExContext) Done() <-chan struct{} {
 }
 
 func (ctx *ExContext) Exit(panc interface{}) {
+	// FIXME(shmel1k): add panic handling
 	def := ctx.scope.deferred
 	ctx.scope.mu.Lock()
 	ctx.scope.deferred = nil
@@ -79,6 +105,21 @@ func (ctx *ExContext) Exit(panc interface{}) {
 	for _, v := range def {
 		v()
 	}
+}
+
+func (ctx *ExContext) writeAccessLog() {
+	if ctx.responseStatus == 0 {
+		ctx.responseStatus = http.StatusOK
+	}
+	// [prefix]: url=%q, method=%s, status=%d
+	contextlog.Printf(ctx, " url=%q, method=%q, status=%d, msg=%s", ctx.HTTPRequest().URL.Path,
+		ctx.HTTPRequest().Method, ctx.responseStatus, ctx.responseMessage)
+}
+
+func (ctx *ExContext) WriteError(err error) {
+	st := errs.WriteError(ctx.HTTPResponseWriter(), err)
+	ctx.responseMessage = fmt.Sprintf("%s", err)
+	ctx.responseStatus = st
 }
 
 func (ctx *ExContext) HTTPResponseWriter() http.ResponseWriter {

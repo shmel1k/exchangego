@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,10 +14,6 @@ import (
 	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/exchange"
 	"github.com/shmel1k/exchangego/exchange/session/context"
-)
-
-const (
-	maxQueryDuration = time.Second
 )
 
 // XXX(shmel1k): move to config:
@@ -50,14 +45,16 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	switch {
 	case err != nil:
-		log.Printf("[%s]: error %s", ctx.User().Name, err)
-		errs.WriteError(ctx.HTTPResponseWriter(), err)
+		ctx.WriteError(err)
 		return
 	}
 	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
 }
 
 func Authorize(ctx *context.ExContext, req AuthorizeRequest) (AuthorizeResponse, error) {
+	if err := ctx.InitUser(); err != nil {
+		return AuthorizeResponse{}, err
+	}
 	if req.Login == "" {
 		return AuthorizeResponse{}, errs.Error{
 			Status: http.StatusForbidden,
