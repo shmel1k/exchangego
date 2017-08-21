@@ -1,23 +1,13 @@
 package auth
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"io"
 	"net/http"
-	"strconv"
-	"time"
 
 	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/exchange"
+	"github.com/shmel1k/exchangego/exchange/auth/cookie"
 	"github.com/shmel1k/exchangego/exchange/session/context"
 )
-
-// XXX(shmel1k): move to config:
-var key []byte = []byte(`HonestOption1234`)
 
 type AuthorizeRequest struct {
 	Login    string
@@ -68,7 +58,7 @@ func Authorize(ctx *context.ExContext, req AuthorizeRequest) (AuthorizeResponse,
 		}
 	}
 	// FIXME(shmel1k): add adequate http headers here.
-	cookie, err := GenerateCookie(ctx)
+	cookieVal, err := cookie.GenerateCookie(ctx.User().Name)
 	if err != nil {
 		return AuthorizeResponse{}, err
 	}
@@ -76,31 +66,9 @@ func Authorize(ctx *context.ExContext, req AuthorizeRequest) (AuthorizeResponse,
 	http.SetCookie(ctx.HTTPResponseWriter(), &http.Cookie{
 		Domain:   "",
 		HttpOnly: true,
-		Name:     "exchange",
-		Value:    cookie,
+		Name:     cookie.CookieName,
+		Value:    cookieVal,
 	})
 
 	return AuthorizeResponse{}, nil
-}
-
-func GenerateCookie(ctx *context.ExContext) (string, error) {
-	buf := make([]byte, 0, 32)
-	buf = append(buf, ctx.User().Name...)
-	buf = append(buf, ':')
-	buf = strconv.AppendInt(buf, time.Now().Unix(), 10)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate cookie[1]: %s", err)
-	}
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", fmt.Errorf("failed to generate cookie[2]: %s", err)
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate cookie[3]: %s", err)
-	}
-	ciphertext := aesgcm.Seal(nil, nonce, buf, nil)
-	return hex.EncodeToString(ciphertext), nil
 }
