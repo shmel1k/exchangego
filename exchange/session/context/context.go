@@ -16,6 +16,7 @@ import (
 	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/database"
 	"github.com/shmel1k/exchangego/exchange"
+	"github.com/shmel1k/exchangego/exchange/auth/cookie"
 )
 
 type ExContext struct {
@@ -74,6 +75,33 @@ func (ctx *ExContext) InitUser() error {
 		return err
 	}
 
+	ctx.setLogPrefix()
+	return nil
+}
+
+func (ctx *ExContext) InitUserFromCookie() error {
+	c, err := ctx.HTTPRequest().Cookie(cookie.CookieName)
+	if err != nil {
+		return errs.Error{
+			Status: http.StatusForbidden,
+			Err:    "bad cookie",
+		}
+	}
+	user, err := cookie.CheckCookie(c)
+	if err != nil {
+		if err == http.ErrNoCookie {
+			return errs.Error{
+				Status: http.StatusForbidden,
+				Err:    "bad cookie",
+			}
+		}
+		return err
+	}
+
+	err = ctx.fetchUser(user)
+	if err != nil {
+		return err
+	}
 	ctx.setLogPrefix()
 	return nil
 }

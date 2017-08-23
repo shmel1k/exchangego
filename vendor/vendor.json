@@ -27,18 +27,30 @@
 		{
 			"checksumSHA1": "k2JgfxkzNCBHYQjcLq7kQmmNTCE=",
 			"path": "github.com/gobwas/pool",
-			"revision": "bd45add59ac962618ccb007459d004f1cf1a65cd",
-			"revisionTime": "2017-08-15T17:19:17Z"
+			"revision": "bb869d364794b4730d7d8fbc4fece0a500733af8",
+			"revisionTime": "2017-08-21T09:52:02Z"
 		},
 		{
 			"checksumSHA1": "xSilIRcQJFjJVaVl1e2oRqsjeeg=",
 			"path": "github.com/gobwas/pool/pbufio",
-			"revision": "bd45add59ac962618ccb007459d004f1cf1a65cd",
-			"revisionTime": "2017-08-15T17:19:17Z"
+			"revision": "bb869d364794b4730d7d8fbc4fece0a500733af8",
+			"revisionTime": "2017-08-21T09:52:02Z"
+		},
+		{
+			"checksumSHA1": "HNmQ5/HoIX1Pg+ZRD89bqspxstU=",
+			"path": "github.com/gobwas/pool/pbytes",
+			"revision": "bb869d364794b4730d7d8fbc4fece0a500733af8",
+			"revisionTime": "2017-08-21T09:52:02Z"
 		},
 		{
 			"checksumSHA1": "flVRvgd7gbSq+Md+r/Og1m3i7VI=",
 			"path": "github.com/gobwas/ws",
+			"revision": "e76b8ddad654b65e621175732059786ae714ebbf",
+			"revisionTime": "2017-08-13T20:18:07Z"
+		},
+		{
+			"checksumSHA1": "2Uke7AZo0ZnT6iSlacd6TXBiZ0g=",
+			"path": "github.com/gobwas/ws/wsutil",
 			"revision": "e76b8ddad654b65e621175732059786ae714ebbf",
 			"revisionTime": "2017-08-13T20:18:07Z"
 		},
@@ -65,6 +77,12 @@
 			"path": "github.com/mailru/easyjson/jwriter",
 			"revision": "2f5df55504ebc322e4d52d34df6a1f5b503bf26d",
 			"revisionTime": "2017-06-24T19:09:26Z"
+		},
+		{
+			"checksumSHA1": "2N+zaafLJbM/BcU+j+/BER6Yiwk=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "07c182904dbd53199946ba614a412c61d3c548f5",
+			"revisionTime": "2017-08-16T12:26:40Z"
 		},
 		{
 			"checksumSHA1": "RDJpJQwkF012L6m/2BJizyOksNw=",
