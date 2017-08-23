@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/auth", auth.AuthorizeHandler)
-	http.HandleFunc("/register", register.RegisterHandler)
+	http.HandleFunc("/api/auth", auth.AuthorizeHandler)
+	http.HandleFunc("/api/register", register.RegisterHandler)
 
 	port := ":" + config.HTTPServer().Port
 	log.Printf("Starting listening http server on port %q", port)
