@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"sync"
 
+	"net"
+
+	"log"
+
 	cntxt "github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/contextlog"
 	"github.com/shmel1k/exchangego/context/errs"
@@ -28,6 +32,8 @@ type ExContext struct {
 type RequestScope struct {
 	mu       sync.Mutex
 	deferred []func()
+
+	cn net.Conn
 
 	request   *http.Request
 	requestID string
@@ -70,6 +76,17 @@ func (ctx *ExContext) InitUser() error {
 
 	ctx.setLogPrefix()
 	return nil
+}
+
+func (ctx *ExContext) PutCn(conn net.Conn) {
+	ctx.scope.cn = conn
+}
+
+func (ctx *ExContext) Cn() net.Conn {
+	if ctx.scope.cn == nil {
+		log.Fatal("no connection")
+	}
+	return ctx.scope.cn
 }
 
 func (ctx *ExContext) fetchUser(user string) error {
