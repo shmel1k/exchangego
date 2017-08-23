@@ -39,11 +39,11 @@ func (n *CNode) RemoveFirst() {
 	n.root = n.root.next
 }
 
-func (n *CNode) ToSlice(cap int) *[]int {
+func (n *CNode) ToSlice(cap int) []int {
 	ar := make([]int, 0, cap)
 	for tmp := n.root; tmp != nil; tmp = tmp.next {
 		ar = append(ar, tmp.value)
 	}
 
-	return &ar
+	return ar
 }

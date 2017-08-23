@@ -24,6 +24,6 @@ func UpdateCurrency() string {
 	return currencyString
 }
 
-func GetHistory(size int) *[]int {
+func GetHistory(size int) []int {
 	return history.ToSlice(size)
 }

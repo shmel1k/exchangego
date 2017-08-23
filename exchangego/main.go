@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"errors"
+
 	"github.com/shmel1k/exchangego/broadcast"
 	"github.com/shmel1k/exchangego/config"
 	"github.com/shmel1k/exchangego/context/errs"
@@ -19,7 +21,7 @@ import (
 var broadCaster *server.EasyCast
 
 type Currencies struct {
-	History *[]int `json:"history"`
+	History []int `json:"history"`
 }
 
 type Error struct {
@@ -53,11 +55,17 @@ func simpleParam(r *http.Request, key string) (string, bool) {
 }
 
 func getLastCurrency(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	ctx, err := context.InitFromHTTP(w, r)
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
 
-	w.Header().Set("Content-Type", "application/json")
+	ctx.HTTPRequest().ParseForm()
+	ctx.HTTPResponseWriter().Header().Set("Content-Type",
+		"application/json")
 
-	sizeStr, ok := simpleParam(r, "size")
+	sizeStr, ok := simpleParam(ctx.HTTPRequest(), "size")
 	if !ok {
 		json.NewEncoder(w).Encode(Error{"bad params"})
 		return
@@ -65,17 +73,17 @@ func getLastCurrency(w http.ResponseWriter, r *http.Request) {
 
 	size, err := strconv.Atoi(sizeStr)
 	if err != nil {
-		json.NewEncoder(w).Encode(Error{"bad params"})
+		ctx.WriteError(err)
 		return
 	}
 
 	if size != 10 {
-		json.NewEncoder(w).Encode(Error{"bad size"})
+		ctx.WriteError(errors.New("need 10"))
 		return
 	}
 
 	historyArray := currency.GetHistory(size)
-	json.NewEncoder(w).Encode(Currencies{historyArray})
+	json.NewEncoder(ctx.HTTPResponseWriter()).Encode(Currencies{historyArray})
 }
 
 func main() {
