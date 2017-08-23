@@ -43,7 +43,7 @@ type RegisterResponse struct {
 
 func Register(ctx *context.ExContext, param RegisterRequest) (RegisterResponse, error) {
 	var err error
-	if err = ctx.InitUser(); err != nil {
+	if err = ctx.InitUser(); err != nil && err != errs.ErrUserNotExists {
 		return RegisterResponse{}, err
 	}
 	_, err = database.AddUser(ctx, param.Login, param.Password)

@@ -112,7 +112,7 @@ func (ctx *ExContext) writeAccessLog() {
 		ctx.responseStatus = http.StatusOK
 	}
 	// [prefix]: url=%q, method=%s, status=%d
-	contextlog.Printf(ctx, " url=%q, method=%q, status=%d, msg=%s", ctx.HTTPRequest().URL.Path,
+	contextlog.Printf(ctx, "url=%q, method=%q, status=%d, msg=%s", ctx.HTTPRequest().URL.Path,
 		ctx.HTTPRequest().Method, ctx.responseStatus, ctx.responseMessage)
 }
 
@@ -148,7 +148,7 @@ func (ctx *ExContext) setLogPrefix() {
 		rid = newRequestID()
 	}
 	ctx.scope.requestID = rid
-	ctx.prefix = fmt.Sprintf("[request_id=%s login=%s]", rid, ctx.User().Name)
+	ctx.prefix = fmt.Sprintf("[request_id=%s login=%s] ", rid, ctx.User().Name)
 }
 
 func newRequestID() string {
