@@ -1,9 +1,8 @@
 package server
 
 import (
+	"easycast/server/context"
 	"sync"
-
-	"github.com/shmel1k/exchangego/broadcast/context"
 )
 
 type CnMap struct {
