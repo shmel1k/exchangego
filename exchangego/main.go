@@ -9,9 +9,11 @@ import (
 
 	"github.com/shmel1k/exchangego/broadcast"
 	"github.com/shmel1k/exchangego/config"
+	"github.com/shmel1k/exchangego/context/errs"
 	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/exchange/auth"
 	"github.com/shmel1k/exchangego/exchange/register"
+	"github.com/shmel1k/exchangego/exchange/session/context"
 )
 
 var broadCaster *server.EasyCast
@@ -31,8 +33,11 @@ func init() {
 }
 
 func connectWebSocketHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO CheckCookie
-	ok := broadCaster.Subscribe(w, r)
+	ctx, err := context.InitFromHTTP(w, r)
+	if err != nil {
+		errs.WriteError(w, err)
+	}
+	ok := broadCaster.Subscribe(ctx)
 	if !ok {
 		log.Fatal("cannot subscribe")
 	}
