@@ -16,6 +16,7 @@ import (
 	"github.com/shmel1k/exchangego/exchange/auth"
 	"github.com/shmel1k/exchangego/exchange/register"
 	"github.com/shmel1k/exchangego/exchange/session/context"
+	"github.com/shmel1k/exchangego/game"
 )
 
 var broadCaster *server.EasyCast
@@ -41,7 +42,10 @@ func connectWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ok := broadCaster.Subscribe(ctx)
 	if !ok {
-		log.Fatal("cannot subscribe")
+		errs.WriteError(w, errs.Error{
+			Status: http.StatusServiceUnavailable,
+			Err:    "failed to subscribe",
+		})
 	}
 }
 
@@ -99,5 +103,18 @@ func main() {
 
 	port := ":" + config.HTTPServer().Port
 	log.Printf("Starting listening http server on port %q", port)
-	http.ListenAndServe(port, nil)
+
+	errs := make(chan error, 2)
+	go func() {
+		errs <- game.RunScheduler()
+	}()
+
+	go func() {
+		errs <- http.ListenAndServe(port, nil)
+	}()
+
+	select {
+	case t := <-errs:
+		log.Fatal(t)
+	}
 }

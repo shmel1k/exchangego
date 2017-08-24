@@ -63,12 +63,25 @@ func FetchUser(ctx context.Context, user string) (exchange.User, error) {
 		}
 	}
 
+	q = fmt.Sprintf("SELECT score FROM money WHERE user_id = ?")
+	resp, err = db.Query(q, u.ID)
+	if err != nil {
+		return exchange.User{}, fmt.Errorf("failed to fetch money from mysql: %s", err)
+	}
+
+	for resp.Next() {
+		err = resp.Scan(&u.Money)
+		if err != nil {
+			return exchange.User{}, fmt.Errorf("failed to scan money-response from mysql: %s", err)
+		}
+	}
+
 	return u, nil
 }
 
 func AddUser(ctx context.Context, user, password string) (exchange.User, error) {
 	initClient()
-
+	// FIXME(shmel1k): add transaction
 	q := fmt.Sprint("SELECT COUNT(*) FROM users WHERE name = ?")
 	resp, err := db.Query(q, user)
 	if err != nil {
@@ -125,4 +138,14 @@ func AddUser(ctx context.Context, user, password string) (exchange.User, error) 
 
 	// FIXME(shmel1k): add UserID
 	return us, nil
+}
+
+func UpdateMoney(userid uint32, money int64) error {
+	// NOTE: this function in used in scheduler.
+	q := fmt.Sprint("UPDATE money SET money = ? WHERE user_id = ?")
+	_, err := db.Query(q, money, userid)
+	if err != nil {
+		return fmt.Errorf("failed to update money for user %d: %s", userid, err)
+	}
+	return nil
 }

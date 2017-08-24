@@ -13,6 +13,8 @@ type User struct {
 	Name             string
 	Password         string
 	RegistrationDate time.Time
+
+	Money int64
 }
 
 type Response struct {
