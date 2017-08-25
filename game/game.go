@@ -11,8 +11,9 @@ import (
 )
 
 type game struct {
-	duration int64
-	end      int64
+	transactionID int64
+	duration      int64
+	end           int64
 
 	startmoney int
 	move       bool // False -- down, True -- up
@@ -34,7 +35,7 @@ type Players struct {
 	mu sync.Mutex
 }
 
-func (p *Players) Add(user exchange.User, duration int64, move bool, startmoney int) error {
+func (p *Players) Add(user exchange.User, transactionID int64, duration int64, move bool, startmoney int) error {
 	if p.players != nil {
 		if _, ok := p.players[user]; ok {
 			return ErrUserExists
@@ -49,9 +50,10 @@ func (p *Players) Add(user exchange.User, duration int64, move bool, startmoney 
 	}
 
 	p.players[user] = game{
-		duration: duration,
-		end:      time.Now().Unix() + duration,
-		move:     move,
+		transactionID: transactionID,
+		duration:      duration,
+		end:           time.Now().Unix() + duration,
+		move:          move,
 	}
 
 	return nil
@@ -70,8 +72,8 @@ func (p *Players) Delete(user exchange.User) {
 	p.mu.Unlock()
 }
 
-func AddPlayer(user exchange.User, duration int64, move bool, startmoney int) error {
-	return players.Add(user, duration, move, startmoney)
+func AddPlayer(user exchange.User, transactionID int64, duration int64, move bool, startmoney int) error {
+	return players.Add(user, transactionID, duration, move, startmoney)
 }
 
 func RunScheduler() error {
@@ -96,9 +98,9 @@ func schedule() error {
 		}
 		var err error
 		for _, v := range playersToUpdate {
-			p := players.Get(v)
+			g := players.Get(v)
 			mon := v.Money
-			if p.startmoney >= curr {
+			if g.startmoney >= curr {
 				mon = mon * 2
 			} else {
 				mon = mon / 2
@@ -108,6 +110,7 @@ func schedule() error {
 			if err != nil {
 				return err
 			}
+			players.Delete(v)
 		}
 		playersToUpdate = playersToUpdate[:0]
 

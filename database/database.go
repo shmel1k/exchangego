@@ -136,7 +136,6 @@ func AddUser(ctx context.Context, user, password string) (exchange.User, error) 
 		contextlog.Printf(ctx, "failed to insert money for user %q: %s", user, err)
 	}
 
-	// FIXME(shmel1k): add UserID
 	return us, nil
 }
 
