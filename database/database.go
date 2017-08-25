@@ -13,6 +13,9 @@ import (
 	"github.com/shmel1k/exchangego/context"
 	"github.com/shmel1k/exchangego/context/contextlog"
 	"github.com/shmel1k/exchangego/exchange"
+	excontext "github.com/shmel1k/exchangego/exchange/session/context"
+	"github.com/shmel1k/exchangego/game"
+	"github.com/shmel1k/exchangego/context/errs"
 )
 
 const (
@@ -138,6 +141,34 @@ func AddUser(ctx context.Context, user, password string) (exchange.User, error) 
 
 	// FIXME(shmel1k): add UserID
 	return us, nil
+}
+
+func AddUserTransaction(ctx *excontext.ExContext, moveType game.MoveType, duration int) (int, error) {
+	initClient()
+
+	sql_ := "INSERT INTO transactions (user_id, type, ts, duration_s, result) VALUES (?, ?, ?, ?, ?);"
+	_, err := db.Query(sql_, ctx.User().ID, moveType, time.Now().Unix(), duration, game.InWaitResult)
+	if err != nil {
+		contextlog.Printf(ctx, "failed to insert transaction %q: %s", ctx.User(), err)
+		return 0, err
+	}
+	/* TODO get transactionId! */
+
+	/* TODO money */
+	return nil
+}
+
+func ChangeStatusTransaction(transactionId int, status game.TransactionResult) error {
+	initClient()
+
+	sql_ := "UPDATE transactions SET result = ? WHERE id = ?"
+	_, err := db.Query(sql_, status, transactionId)
+	if err != nil {
+		fmt.Errorf("failed to update transaction id %d: %s", transactionId, err)
+		return err
+	}
+
+	return nil
 }
 
 func UpdateMoney(userid uint32, money int64) error {

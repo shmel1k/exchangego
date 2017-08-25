@@ -9,11 +9,34 @@ import (
 	"github.com/shmel1k/exchangego/exchange"
 )
 
+type MoveType string
+const (
+	UpMoveType 	 	MoveType 	=	"up"
+	DownMoveType 	MoveType 	= 	"down"
+	UnknownMoveType MoveType	=	""
+)
+
+func CastMoveType(param string) (MoveType, bool) {
+	if param == "up" {
+		return UpMoveType, true
+	} else if param == "down" {
+		return DownMoveType, true
+	}
+
+	return UnknownMoveType, false
+}
+
+type TransactionResult int
+const (
+	InWaitResult TransactionResult = 0
+	FinishResult TransactionResult = 1
+)
+
 type game struct {
 	duration int64
 	end      int64
 
-	move bool // False -- down, True -- up
+	move MoveType // False -- down, True -- up
 }
 
 const (

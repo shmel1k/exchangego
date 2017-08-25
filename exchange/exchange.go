@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/shmel1k/exchangego/context/errs"
+	"errors"
+	"github.com/shmel1k/exchangego/exchange/session/context"
 )
 
 type User struct {
@@ -17,9 +19,26 @@ type User struct {
 	Money int64
 }
 
+var (
+	BadParamsError = errors.New("bad params")
+)
 type Response struct {
 	Status int         `json:"status"`
 	Body   interface{} `json:"body"`
+}
+
+type Error struct {
+	Err string `json:"error"`
+}
+
+func SimpleParam(ctx *context.ExContext, key string, str *string) bool {
+	value, ok := ctx.HTTPRequest().Form[key]
+	if !ok || len(value) != 1 {
+		ctx.WriteError(BadParamsError)
+		return false
+	}
+	str = &(value[0])
+	return true
 }
 
 func WriteOK(w http.ResponseWriter, data interface{}) {

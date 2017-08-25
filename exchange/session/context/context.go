@@ -55,6 +55,8 @@ func withCancel(w http.ResponseWriter, r *http.Request) (*ExContext, context.Can
 }
 
 func InitFromHTTP(w http.ResponseWriter, r *http.Request) (*ExContext, error) {
+	r.ParseForm()
+
 	ctx, cancel := withCancel(w, r)
 	ctx.Defer(cancel)
 	ctx.Defer(ctx.writeAccessLog)
