@@ -2,8 +2,8 @@ package context
 
 import (
 	"context"
-	"net/http"
 	"net"
+	"net/http"
 )
 
 type Context interface {

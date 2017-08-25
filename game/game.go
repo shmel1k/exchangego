@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/database"
 	"github.com/shmel1k/exchangego/exchange"
 )
@@ -13,7 +14,8 @@ type game struct {
 	duration int64
 	end      int64
 
-	move bool // False -- down, True -- up
+	startmoney int
+	move       bool // False -- down, True -- up
 }
 
 const (
@@ -32,7 +34,7 @@ type Players struct {
 	mu sync.Mutex
 }
 
-func (p *Players) Add(user exchange.User, duration int64, move bool) error {
+func (p *Players) Add(user exchange.User, duration int64, move bool, startmoney int) error {
 	if p.players != nil {
 		if _, ok := p.players[user]; ok {
 			return ErrUserExists
@@ -55,14 +57,21 @@ func (p *Players) Add(user exchange.User, duration int64, move bool) error {
 	return nil
 }
 
+func (p *Players) Get(user exchange.User) game {
+	if p.players == nil {
+		return game{}
+	}
+	return p.players[user]
+}
+
 func (p *Players) Delete(user exchange.User) {
 	p.mu.Lock()
 	delete(p.players, user)
 	p.mu.Unlock()
 }
 
-func AddPlayer(user exchange.User, duration int64, move bool) error {
-	return players.Add(user, duration, move)
+func AddPlayer(user exchange.User, duration int64, move bool, startmoney int) error {
+	return players.Add(user, duration, move, startmoney)
 }
 
 func RunScheduler() error {
@@ -77,6 +86,8 @@ func RunScheduler() error {
 func schedule() error {
 	playersToUpdate := make([]exchange.User, 0, len(players.players))
 	for {
+		curr := currency.GetCurrency()
+
 		t := time.Now().Unix()
 		for k, v := range players.players {
 			if v.end <= t {
@@ -85,7 +96,15 @@ func schedule() error {
 		}
 		var err error
 		for _, v := range playersToUpdate {
-			err = database.UpdateMoney(v.ID, v.Money/2)
+			p := players.Get(v)
+			mon := v.Money
+			if p.startmoney >= curr {
+				mon = mon * 2
+			} else {
+				mon = mon / 2
+			}
+
+			err = database.UpdateMoney(v.ID, mon)
 			if err != nil {
 				return err
 			}
