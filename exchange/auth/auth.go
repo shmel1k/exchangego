@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base/errs"
 	"github.com/shmel1k/exchangego/exchange"
 	"github.com/shmel1k/exchangego/exchange/auth/cookie"
 	"github.com/shmel1k/exchangego/exchange/session/context"
@@ -27,22 +27,40 @@ func AuthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.Exit(recover())
 	}()
 
-	login := r.URL.Query().Get("Login")
-	pass := r.URL.Query().Get("Password")
-	resp, err := Authorize(ctx, AuthorizeRequest{
-		Login:    login,
-		Password: pass,
+	if !exchange.IsOnlyMethod(ctx, http.MethodGet, http.MethodPost) {
+		return
+	}
+
+	if (r.Method == http.MethodGet) {
+		exchange.ReturnTemplate(ctx, exchange.AuthTmpl)
+		return
+	}
+
+	var user, password string
+	if !exchange.SimpleParam(ctx, "Login", &user) {
+		return
+	}
+
+	if !exchange.SimpleParam(ctx, "Password", &password) {
+		return
+	}
+
+	_, err = Authorize(ctx, AuthorizeRequest{
+		Login:    user,
+		Password: password,
 	})
 	switch {
 	case err != nil:
 		ctx.WriteError(err)
 		return
 	}
-	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
+
+	http.Redirect(ctx.HTTPResponseWriter(), ctx.HTTPRequest(), "/", http.StatusMovedPermanently)
+	// exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
 }
 
 func Authorize(ctx *context.ExContext, req AuthorizeRequest) (AuthorizeResponse, error) {
-	if err := ctx.InitUser(); err != nil {
+	if err := ctx.InitUser(req.Login); err != nil {
 		return AuthorizeResponse{}, err
 	}
 	if req.Login == "" {

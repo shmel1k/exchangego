@@ -119,7 +119,7 @@ jQuery.fn = jQuery.prototype = {
 				match = rquickExpr.exec( selector );
 			}
 
-			// Match html or make sure no context is specified for #id
+			// Match html or make sure no base is specified for #id
 			if ( match && (match[1] || !context) ) {
 
 				// HANDLE: $(html) -> $(array)
@@ -162,8 +162,8 @@ jQuery.fn = jQuery.prototype = {
 			} else if ( !context || context.jquery ) {
 				return ( context || rootjQuery ).find( selector );
 
-			// HANDLE: $(expr, context)
-			// (which is just equivalent to: $(context).find(expr)
+			// HANDLE: $(expr, base)
+			// (which is just equivalent to: $(base).find(expr)
 			} else {
 				return this.constructor( context ).find( selector );
 			}
@@ -478,7 +478,7 @@ jQuery.extend({
 	},
 
 	// data: string of html
-	// context (optional): If specified, the fragment will be created in this context, defaults to document
+	// base (optional): If specified, the fragment will be created in this base, defaults to document
 	// scripts (optional): If true, will include scripts passed in the html string
 	parseHTML: function( data, context, scripts ) {
 		var parsed;
@@ -552,13 +552,13 @@ jQuery.extend({
 
 	noop: function() {},
 
-	// Evaluates a script in a global context
+	// Evaluates a script in a global base
 	// Workarounds based on findings by Jim Driscoll
 	// http://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
 	globalEval: function( data ) {
 		if ( data && core_rnotwhite.test( data ) ) {
 			// We use execScript on Internet Explorer
-			// We use an anonymous function so that context is window
+			// We use an anonymous function so that base is window
 			// rather than jQuery in Firefox
 			( window.execScript || function( data ) {
 				window[ "eval" ].call( window, data );
@@ -752,7 +752,7 @@ jQuery.extend({
 	// A global GUID counter for objects
 	guid: 1,
 
-	// Bind a function to a context, optionally partially applying any
+	// Bind a function to a base, optionally partially applying any
 	// arguments.
 	proxy: function( fn, context ) {
 		var tmp, args, proxy;
@@ -1073,7 +1073,7 @@ jQuery.Callbacks = function( options ) {
 			locked: function() {
 				return !stack;
 			},
-			// Call all callbacks with the given context and arguments
+			// Call all callbacks with the given base and arguments
 			fireWith: function( context, args ) {
 				args = args || [];
 				args = [ context, args.slice ? args.slice() : args ];
@@ -2662,7 +2662,7 @@ jQuery.event = {
 			handler.guid = jQuery.guid++;
 		}
 
-		// Init the element's event structure and main handler, if this is the first
+		// Init the element's event structure and exgame handler, if this is the first
 		events = elemData.events;
 		if ( !events ) {
 			elemData.events = events = {};
@@ -4843,7 +4843,7 @@ function setMatcher( preFilter, selector, matcher, postFilter, postFinder, postS
 			postMap = [],
 			preexisting = results.length,
 
-			// Get initial elements from seed or context
+			// Get initial elements from seed or base
 			elems = seed || multipleContexts( selector || "*", context.nodeType ? [ context ] : context, [] ),
 
 			// Prefilter to get matcher input, preserving a map for seed-results synchronization
@@ -4930,7 +4930,7 @@ function matcherFromTokens( tokens ) {
 		implicitRelative = leadingRelative || Expr.relative[" "],
 		i = leadingRelative ? 1 : 0,
 
-		// The foundational matcher ensures that elements are reachable from top-level context(s)
+		// The foundational matcher ensures that elements are reachable from top-level base(s)
 		matchContext = addCombinator( function( elem ) {
 			return elem === checkContext;
 		}, implicitRelative, true ),
@@ -4986,7 +4986,7 @@ function matcherFromGroupMatchers( elementMatchers, setMatchers ) {
 				unmatched = seed && [],
 				outermost = expandContext != null,
 				contextBackup = outermostContext,
-				// We must always have either seed elements or context
+				// We must always have either seed elements or base
 				elems = seed || byElement && Expr.find["TAG"]( "*", expandContext && context.parentNode || context ),
 				// Nested matchers should use non-integer dirruns
 				dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.E);
@@ -5117,7 +5117,7 @@ function select( selector, context, results, seed, xml ) {
 		// Try to minimize operations if there is only one group
 		if ( match.length === 1 ) {
 
-			// Take a shortcut and set the context if the root selector is an ID
+			// Take a shortcut and set the base if the root selector is an ID
 			tokens = match[0] = match[0].slice( 0 );
 			if ( tokens.length > 2 && (token = tokens[0]).type === "ID" &&
 					context.nodeType === 9 && !xml &&
@@ -5140,7 +5140,7 @@ function select( selector, context, results, seed, xml ) {
 					break;
 				}
 				if ( (find = Expr.find[ type ]) ) {
-					// Search, expanding context for leading sibling combinators
+					// Search, expanding base for leading sibling combinators
 					if ( (seed = find(
 						token.matches[0].replace( rbackslash, "" ),
 						rsibling.test( tokens[0].type ) && context.parentNode || context,
@@ -6136,14 +6136,14 @@ jQuery.buildFragment = function( args, context, scripts ) {
 	var fragment, cacheable, cachehit,
 		first = args[ 0 ];
 
-	// Set context from what may come in as undefined or a jQuery collection or a node
-	// Updated to fix #12266 where accessing context[0] could throw an exception in IE9/10 &
+	// Set base from what may come in as undefined or a jQuery collection or a node
+	// Updated to fix #12266 where accessing base[0] could throw an exception in IE9/10 &
 	// also doubles as fix for #8950 where plain objects caused createDocumentFragment exception
 	context = context || document;
 	context = !context.nodeType && context[0] || context;
 	context = context.ownerDocument || context;
 
-	// Only cache "small" (1/2 KB) HTML strings that are associated with the main document
+	// Only cache "small" (1/2 KB) HTML strings that are associated with the exgame document
 	// Cloning options loses the selected state, so don't cache them
 	// IE 6 doesn't like it when you put <object> or <embed> elements in a fragment
 	// Also, WebKit does not clone 'checked' attributes on cloneNode, so don't cache
@@ -6290,12 +6290,12 @@ jQuery.extend({
 			safe = context === document && safeFragment,
 			ret = [];
 
-		// Ensure that context is a document
+		// Ensure that base is a document
 		if ( !context || typeof context.createDocumentFragment === "undefined" ) {
 			context = document;
 		}
 
-		// Use the already-created safe fragment if context permits
+		// Use the already-created safe fragment if base permits
 		for ( i = 0; (elem = elems[i]) != null; i++ ) {
 			if ( typeof elem === "number" ) {
 				elem += "";
@@ -7642,7 +7642,7 @@ jQuery.extend({
 			i,
 			// Create the final options object
 			s = jQuery.ajaxSetup( {}, options ),
-			// Callbacks context
+			// Callbacks base
 			callbackContext = s.context || s,
 			// Context for global events
 			// It's the callbackContext if one was provided in the options

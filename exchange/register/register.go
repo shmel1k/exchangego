@@ -3,10 +3,11 @@ package register
 import (
 	"net/http"
 
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base/errs"
 	"github.com/shmel1k/exchangego/database"
 	"github.com/shmel1k/exchangego/exchange"
 	"github.com/shmel1k/exchangego/exchange/session/context"
+	"fmt"
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,10 +18,27 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctx.Exit(recover())
 
-	user := r.URL.Query().Get("Login")
-	password := r.URL.Query().Get("Password")
+	if !exchange.IsOnlyMethod(ctx, http.MethodGet, http.MethodPost) {
+		return
+	}
 
-	resp, err := Register(ctx, RegisterRequest{
+	if ctx.HTTPRequest().Method == http.MethodGet {
+		exchange.ReturnTemplate(ctx, exchange.RegTmpl)
+		return
+	}
+
+	var user, password string
+	if !exchange.SimpleParam(ctx, "Login", &user) {
+		return
+	}
+
+	if !exchange.SimpleParam(ctx, "Password", &password) {
+		return
+	}
+
+	fmt.Println("user", user)
+	fmt.Println(password)
+	_, err = Register(ctx, RegisterRequest{
 		Login:    user,
 		Password: password,
 	})
@@ -30,7 +48,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		ctx.WriteError(err)
 		return
 	}
-	exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
+
+	http.Redirect(ctx.HTTPResponseWriter(), ctx.HTTPRequest(),
+		"/auth", http.StatusMovedPermanently)
+	// exchange.WriteOK(ctx.HTTPResponseWriter(), resp)
 }
 
 type RegisterRequest struct {
@@ -43,9 +64,10 @@ type RegisterResponse struct {
 
 func Register(ctx *context.ExContext, param RegisterRequest) (RegisterResponse, error) {
 	var err error
-	if err = ctx.InitUser(); err != nil && err != errs.ErrUserNotExists {
+	if err = ctx.InitUser(param.Login); err != nil && err != errs.ErrUserNotExists {
 		return RegisterResponse{}, err
 	}
+
 	_, err = database.AddUser(ctx, param.Login, param.Password)
 	if err != nil {
 		if err == database.ErrUserExists {

@@ -1,0 +1,31 @@
+{{ define "content" }}
+
+<div class="container">
+    <div class="header clearfix">
+        <nav>
+            <ul class="nav nav-pills float-right">
+                {{ if .IsAuth }}
+                <li class="nav-item">
+                    <a class="nav-link active">{{ .UserName }}</a>
+                </li>
+                {{ end }}
+            </ul>
+        </nav>
+        <h3 class="text-muted">FairExchange</h3>
+    </div>
+
+    <div class="jumbotron" style="height: 400px;">
+        <div id="placeholder" style="width:600px;height:300px; float: right;"></div>
+        <script src="/static/app.js"></script>
+
+        <p><a class="btn btn-lg btn-success" onclick="window.startGame('up');" role="button">UP</a></p>
+        <p><a class="btn btn-lg btn-success" onclick="window.startGame('down');" href="#" role="button">DOWN</a></p>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; Company 2017</p>
+    </footer>
+
+</div>
+
+{{ end }}

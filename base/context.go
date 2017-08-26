@@ -1,13 +1,21 @@
-package context
+package base
 
 import (
-	"context"
 	"net"
 	"net/http"
+	"time"
 )
 
+type User struct {
+	ID               uint32
+	Name             string
+	Password         string
+	RegistrationDate time.Time
+
+	Money int64
+}
+
 type Context interface {
-	context.Context
 	Defer(f func())
 	PutCn(cn net.Conn)
 	Cn() net.Conn

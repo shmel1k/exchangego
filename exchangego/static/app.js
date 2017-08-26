@@ -16,6 +16,16 @@ function generateArray(history) {
     return ar;
 }
 
+function getRealHost() {
+    return window.location.hostname + (window.location.port ? ':'+ window.location.port : '');
+}
+
+window.startGame = function(type) {
+    $.ajax("/game?type=" + type + "&seconds=10", function (e) {
+        alert(e.data);
+    });
+};
+
 function draw(graph) {
     $.plot($("#placeholder"), [graph]);
 }
@@ -23,8 +33,8 @@ function draw(graph) {
 $.get("/get?size=10", function(data) {
     history = data["history"];
 
-    draw( generateArray(history) );
-    let ws = new WebSocket('ws://localhost:4242/ws');
+    draw(generateArray(history));
+    let ws = new WebSocket('ws://' + getRealHost() + '/ws');
 
     ws.addEventListener('message', function(e) {
         let msg = JSON.parse(e.data);
