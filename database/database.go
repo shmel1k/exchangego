@@ -138,7 +138,7 @@ func AddUser(ctx base.Context, user, password string) (base.User, error) {
 	return us, nil
 }
 
-func AddUserTransaction(user base.User, moveType string, duration int) (int, error) {
+func AddUserTransaction(user base.User, moveType string, duration int) (int64, error) {
 	initClient()
 
 	sql_ := "INSERT INTO transactions (user_id, type, ts, duration_s, result) VALUES (?, ?, ?, ?, ?);"
@@ -152,7 +152,7 @@ func AddUserTransaction(user base.User, moveType string, duration int) (int, err
 
 	/* TODO money */
 
-	return int(id), err
+	return id, err
 }
 
 func ChangeStatusTransaction(transactionId int, status int) error {
@@ -170,7 +170,7 @@ func ChangeStatusTransaction(transactionId int, status int) error {
 
 func UpdateMoney(userid uint32, money int64) error {
 	// NOTE: this function in used in scheduler.
-	q := fmt.Sprint("UPDATE money SET money = ? WHERE user_id = ?")
+	q := fmt.Sprint("UPDATE money SET score = ? WHERE user_id = ?")
 	_, err := db.Query(q, money, userid)
 	if err != nil {
 		return fmt.Errorf("failed to update money for user %d: %s", userid, err)

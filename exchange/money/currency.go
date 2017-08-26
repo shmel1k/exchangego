@@ -36,7 +36,7 @@ func GetLastCurrency(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if size != 10 {
+	if size != 20 {
 		ctx.WriteError(errors.New("need 10"))
 		return
 	}

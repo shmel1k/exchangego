@@ -13,13 +13,21 @@ func InitCurrency() {
 }
 
 func UpdateCurrency() string {
-	if history.Size() == 10 {
+	if history.Size() == 20 {
 		history.RemoveFirst()
 	}
 
 	history.Add(currency)
 
-	currency += rand.Intn(10) - 5
+	var val int
+	if rand.Intn(2) == 1 {
+		val = 1
+	} else {
+		val = -1
+	}
+
+	currency += val * rand.Intn(7)
+
 	currencyString := strconv.Itoa(currency)
 	return currencyString
 }
