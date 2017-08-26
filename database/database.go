@@ -10,12 +10,8 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/shmel1k/exchangego/config"
-	"github.com/shmel1k/exchangego/context"
-	"github.com/shmel1k/exchangego/context/contextlog"
-	"github.com/shmel1k/exchangego/exchange"
-	excontext "github.com/shmel1k/exchangego/exchange/session/context"
-	"github.com/shmel1k/exchangego/game"
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base"
+	"github.com/shmel1k/exchangego/base/contextlog"
 )
 
 const (
@@ -49,56 +45,56 @@ func initClient() {
 	})
 }
 
-func FetchUser(ctx context.Context, user string) (exchange.User, error) {
+func FetchUser(ctx base.Context, user string) (base.User, error) {
 	initClient()
 	// XXX(shmel1k): fix registration_date in scanning
 	q := fmt.Sprintf("SELECT id, name, password FROM users WHERE name = ?")
 	resp, err := db.Query(q, user)
 	if err != nil {
-		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return base.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 
-	var u exchange.User
+	var u base.User
 	for resp.Next() {
 		err = resp.Scan(&u.ID, &u.Name, &u.Password)
 		if err != nil {
-			return exchange.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
+			return base.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
 		}
 	}
 
 	q = fmt.Sprintf("SELECT score FROM money WHERE user_id = ?")
 	resp, err = db.Query(q, u.ID)
 	if err != nil {
-		return exchange.User{}, fmt.Errorf("failed to fetch money from mysql: %s", err)
+		return base.User{}, fmt.Errorf("failed to fetch money from mysql: %s", err)
 	}
 
 	for resp.Next() {
 		err = resp.Scan(&u.Money)
 		if err != nil {
-			return exchange.User{}, fmt.Errorf("failed to scan money-response from mysql: %s", err)
+			return base.User{}, fmt.Errorf("failed to scan money-response from mysql: %s", err)
 		}
 	}
 
 	return u, nil
 }
 
-func AddUser(ctx context.Context, user, password string) (exchange.User, error) {
+func AddUser(ctx base.Context, user, password string) (base.User, error) {
 	initClient()
 	// FIXME(shmel1k): add transaction
 	q := fmt.Sprint("SELECT COUNT(*) FROM users WHERE name = ?")
 	resp, err := db.Query(q, user)
 	if err != nil {
-		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return base.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 
 	var cnt uint32
 	for resp.Next() {
 		err = resp.Scan(&cnt)
 		if err != nil {
-			return exchange.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
+			return base.User{}, fmt.Errorf("failed to scan response from mysql: %s", err)
 		}
 		if cnt != 0 {
-			return exchange.User{}, ErrUserExists
+			return base.User{}, ErrUserExists
 		}
 	}
 
@@ -107,11 +103,11 @@ func AddUser(ctx context.Context, user, password string) (exchange.User, error) 
 
 	_, err = db.Query(q, user, password, t)
 	if err != nil {
-		return exchange.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
+		return base.User{}, fmt.Errorf("failed to perform query %q: %s", q, err)
 	}
 	contextlog.Printf(ctx, "User %s successfully added", user)
 
-	us := exchange.User{
+	us := base.User{
 		ID:               0,
 		Name:             user,
 		Password:         password,
@@ -143,22 +139,22 @@ func AddUser(ctx context.Context, user, password string) (exchange.User, error) 
 	return us, nil
 }
 
-func AddUserTransaction(ctx *excontext.ExContext, moveType game.MoveType, duration int) (int, error) {
+func AddUserTransaction(user base.User, moveType string, duration int) (int, error) {
 	initClient()
 
 	sql_ := "INSERT INTO transactions (user_id, type, ts, duration_s, result) VALUES (?, ?, ?, ?, ?);"
-	_, err := db.Query(sql_, ctx.User().ID, moveType, time.Now().Unix(), duration, game.InWaitResult)
+	_, err := db.Query(sql_, user.ID, moveType, time.Now().Unix(), duration, 0 /* Start Wait */)
 	if err != nil {
-		contextlog.Printf(ctx, "failed to insert transaction %q: %s", ctx.User(), err)
+		log.Printf("failed to insert transaction %q: %s", user, err)
 		return 0, err
 	}
 	/* TODO get transactionId! */
 
 	/* TODO money */
-	return nil
+	return 0, nil
 }
 
-func ChangeStatusTransaction(transactionId int, status game.TransactionResult) error {
+func ChangeStatusTransaction(transactionId int, status int) error {
 	initClient()
 
 	sql_ := "UPDATE transactions SET result = ? WHERE id = ?"

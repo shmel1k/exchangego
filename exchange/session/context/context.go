@@ -1,27 +1,23 @@
 package context
 
 import (
-	"context"
+	ctxt "context"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"sync"
-
 	"net"
-
 	"log"
 
-	cntxt "github.com/shmel1k/exchangego/context"
-	"github.com/shmel1k/exchangego/context/contextlog"
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base/errs"
 	"github.com/shmel1k/exchangego/database"
-	"github.com/shmel1k/exchangego/exchange"
 	"github.com/shmel1k/exchangego/exchange/auth/cookie"
+	"github.com/shmel1k/exchangego/base"
+	"github.com/shmel1k/exchangego/base/contextlog"
 )
 
 type ExContext struct {
-	cntxt.Context
-	context context.Context
+	context ctxt.Context
 
 	scope RequestScope
 
@@ -39,11 +35,11 @@ type RequestScope struct {
 	request   *http.Request
 	requestID string
 	writer    http.ResponseWriter
-	user      exchange.User
+	user      base.User
 }
 
-func withCancel(w http.ResponseWriter, r *http.Request) (*ExContext, context.CancelFunc) {
-	ctx1, cancel := context.WithCancel(context.Background())
+func withCancel(w http.ResponseWriter, r *http.Request) (*ExContext, ctxt.CancelFunc) {
+	ctx1, cancel := ctxt.WithCancel(ctxt.Background())
 	ctx := &ExContext{
 		context: ctx1,
 		scope: RequestScope{
@@ -67,11 +63,11 @@ func InitFromHTTP(w http.ResponseWriter, r *http.Request) (*ExContext, error) {
 	return ctx, nil
 }
 
-func (ctx *ExContext) InitUser() error {
-	login := ctx.scope.request.URL.Query().Get("Login")
+func (ctx *ExContext) InitUser(login string) error {
 	if login == "" {
 		return errs.ErrUserNotExists
 	}
+
 	err := ctx.fetchUser(login)
 	if err != nil {
 		return err
@@ -177,7 +173,7 @@ func (ctx *ExContext) HTTPRequest() *http.Request {
 	return ctx.scope.request
 }
 
-func (ctx *ExContext) User() exchange.User {
+func (ctx *ExContext) User() base.User {
 	return ctx.scope.user
 }
 

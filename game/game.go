@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/shmel1k/exchangego/base"
 	"github.com/shmel1k/exchangego/database"
-	"github.com/shmel1k/exchangego/exchange"
 )
 
 type MoveType string
@@ -44,18 +44,18 @@ const (
 )
 
 var (
-	ErrUserExists = errors.New("failed to add user to game: user exists")
+	ErrUserExists = errors.New("failed to add user to exgame: user exists")
 )
 
 var players Players
 
 type Players struct {
-	players map[exchange.User]game
+	players map[base.User]game
 
 	mu sync.Mutex
 }
 
-func (p *Players) Add(user exchange.User, duration int64, move bool) error {
+func (p *Players) Add(user base.User, duration int64, move MoveType) error {
 	if p.players != nil {
 		if _, ok := p.players[user]; ok {
 			return ErrUserExists
@@ -66,7 +66,7 @@ func (p *Players) Add(user exchange.User, duration int64, move bool) error {
 	defer p.mu.Unlock()
 
 	if p.players == nil {
-		p.players = make(map[exchange.User]game)
+		p.players = make(map[base.User]game)
 	}
 
 	p.players[user] = game{
@@ -78,13 +78,13 @@ func (p *Players) Add(user exchange.User, duration int64, move bool) error {
 	return nil
 }
 
-func (p *Players) Delete(user exchange.User) {
+func (p *Players) Delete(user base.User) {
 	p.mu.Lock()
 	delete(p.players, user)
 	p.mu.Unlock()
 }
 
-func AddPlayer(user exchange.User, duration int64, move bool) error {
+func AddPlayer(user base.User, duration int64, move MoveType) error {
 	return players.Add(user, duration, move)
 }
 
@@ -98,7 +98,7 @@ func RunScheduler() error {
 }
 
 func schedule() error {
-	playersToUpdate := make([]exchange.User, 0, len(players.players))
+	playersToUpdate := make([]base.User, 0, len(players.players))
 	for {
 		t := time.Now().Unix()
 		for k, v := range players.players {

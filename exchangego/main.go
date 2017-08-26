@@ -7,13 +7,14 @@ import (
 
 	"github.com/shmel1k/exchangego/broadcast"
 	"github.com/shmel1k/exchangego/config"
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base/errs"
 	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/exchange/auth"
 	"github.com/shmel1k/exchangego/exchange/register"
 	"github.com/shmel1k/exchangego/exchange/session/context"
 	"github.com/shmel1k/exchangego/game"
 	"github.com/shmel1k/exchangego/exchange/money"
+	"github.com/shmel1k/exchangego/exchange/exgame"
 )
 
 var broadCaster *server.EasyCast
@@ -39,15 +40,18 @@ func connectWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/api/auth", auth.AuthorizeHandler)
-	http.HandleFunc("/api/register", register.RegisterHandler)
+	http.HandleFunc("/auth", auth.AuthorizeHandler)
+	http.HandleFunc("/register", register.RegisterHandler)
 	http.HandleFunc("/get", money.GetLastCurrency)
+
+	http.HandleFunc("/", exgame.WelcomePage)
+	http.HandleFunc("/game", exgame.StartGame)
 
 	http.HandleFunc("/ws", connectWebSocketHandler)
 
 	/* TODO nginx */
 	fs := http.FileServer(http.Dir("./exchangego/static"))
-	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static", fs))
 
 	port := ":" + config.HTTPServer().Port
 	log.Printf("Starting listening http server on port %q", port)

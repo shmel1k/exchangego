@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"errors"
-	"github.com/shmel1k/exchangego/context/errs"
+	"github.com/shmel1k/exchangego/base/errs"
 	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/exchange/session/context"
 	"github.com/shmel1k/exchangego/exchange"

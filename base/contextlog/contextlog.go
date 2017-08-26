@@ -5,22 +5,22 @@ import (
 	"log"
 	"strings"
 
-	"github.com/shmel1k/exchangego/context"
+	"github.com/shmel1k/exchangego/base"
 )
 
-func Printf(ctx context.Context, f string, args ...interface{}) {
+func Printf(ctx base.Context, f string, args ...interface{}) {
 	doPrintf(ctx.LogPrefix(), f, args...)
 }
 
-func Println(ctx context.Context, args ...interface{}) {
+func Println(ctx base.Context, args ...interface{}) {
 	doPrintln(ctx.LogPrefix(), args...)
 }
 
-func Fatalf(ctx context.Context, f string, args ...interface{}) {
+func Fatalf(ctx base.Context, f string, args ...interface{}) {
 	doFatalf(ctx.LogPrefix(), f, args...)
 }
 
-func Print(ctx context.Context, args ...interface{}) {
+func Print(ctx base.Context, args ...interface{}) {
 	doPrint(ctx.LogPrefix(), args...)
 }
 
