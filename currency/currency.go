@@ -27,3 +27,7 @@ func UpdateCurrency() string {
 func GetHistory(size int) []int {
 	return history.ToSlice(size)
 }
+
+func GetCurrency() int {
+	return currency
+}

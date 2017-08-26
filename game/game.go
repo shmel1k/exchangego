@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 	"time"
-
 	"github.com/shmel1k/exchangego/base"
+	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/database"
 )
 
@@ -33,10 +33,12 @@ const (
 )
 
 type game struct {
-	duration int64
-	end      int64
+	transactionID int64
+	duration      int64
+	end           int64
 
 	move MoveType // False -- down, True -- up
+	startmoney int
 }
 
 const (
@@ -55,7 +57,7 @@ type Players struct {
 	mu sync.Mutex
 }
 
-func (p *Players) Add(user base.User, duration int64, move MoveType) error {
+func (p *Players) Add(user base.User, transactionID int64, duration int64, move MoveType, startmoney int) error {
 	if p.players != nil {
 		if _, ok := p.players[user]; ok {
 			return ErrUserExists
@@ -70,12 +72,20 @@ func (p *Players) Add(user base.User, duration int64, move MoveType) error {
 	}
 
 	p.players[user] = game{
-		duration: duration,
-		end:      time.Now().Unix() + duration,
-		move:     move,
+		transactionID: transactionID,
+		duration:      duration,
+		end:           time.Now().Unix() + duration,
+		move:          move,
 	}
 
 	return nil
+}
+
+func (p *Players) Get(user base.User) game {
+	if p.players == nil {
+		return game{}
+	}
+	return p.players[user]
 }
 
 func (p *Players) Delete(user base.User) {
@@ -84,8 +94,8 @@ func (p *Players) Delete(user base.User) {
 	p.mu.Unlock()
 }
 
-func AddPlayer(user base.User, duration int64, move MoveType) error {
-	return players.Add(user, duration, move)
+func AddPlayer(user base.User, transactionID int64, duration int64, move MoveType, startmoney int) error {
+	return players.Add(user, transactionID, duration, move, startmoney)
 }
 
 func RunScheduler() error {
@@ -100,6 +110,8 @@ func RunScheduler() error {
 func schedule() error {
 	playersToUpdate := make([]base.User, 0, len(players.players))
 	for {
+		curr := currency.GetCurrency()
+
 		t := time.Now().Unix()
 		for k, v := range players.players {
 			if v.end <= t {
@@ -108,10 +120,19 @@ func schedule() error {
 		}
 		var err error
 		for _, v := range playersToUpdate {
-			err = database.UpdateMoney(v.ID, v.Money/2)
+			g := players.Get(v)
+			mon := v.Money
+			if g.startmoney >= curr {
+				mon = mon * 2
+			} else {
+				mon = mon / 2
+			}
+
+			err = database.UpdateMoney(v.ID, mon)
 			if err != nil {
 				return err
 			}
+			players.Delete(v)
 		}
 		playersToUpdate = playersToUpdate[:0]
 
