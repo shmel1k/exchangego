@@ -10,10 +10,13 @@ import (
 	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/shmel1k/exchangego/exchange/session/context"
+	"fmt"
 )
 
 type PassPoolStruct struct {
-	ctx      *context.ExContext
+	userName string
+
+	cn net.Conn
 	mainCast *EasyCast
 
 	msg string
@@ -40,11 +43,12 @@ func NewEasyCast(generator func() string, castDelay time.Duration, poolSize int)
 			message := generator()
 
 			lockMap := cast.ConnectionMap.GetAndLock()
-			for ctx, _ := range lockMap {
+			for name, cn := range lockMap {
 				cast.pool.ThrowTask(shareAllUsers, &PassPoolStruct{
-					ctx:      ctx,
-					mainCast: cast,
-					msg:      message,
+					cn:      	cn,
+					userName:	name,
+					mainCast: 	cast,
+					msg:      	message,
 				})
 			}
 			cast.ConnectionMap.UnLock()
@@ -58,18 +62,17 @@ func NewEasyCast(generator func() string, castDelay time.Duration, poolSize int)
 
 func shareAllUsers(msg_ interface{}) {
 	passPool, _ := msg_.(*PassPoolStruct)
-	ctx := passPool.ctx
+	cn := passPool.cn
 
 	now := time.Now().Unix()
 
 	resp, _ := json.Marshal(message{passPool.msg, now})
-	err := wsutil.WriteServerMessage(ctx.Cn(), ws.OpText, resp)
+	err := wsutil.WriteServerMessage(cn, ws.OpText, resp)
+
 	if err != nil {
 		/* close connection */
 		log.Println("Close connection")
-
-		ctx.Exit(recover())
-		passPool.mainCast.ConnectionMap.TryRemove(ctx)
+		passPool.mainCast.ConnectionMap.TryRemove(passPool.userName)
 	}
 }
 
@@ -89,6 +92,7 @@ func (ec *EasyCast) Subscribe(ctx *context.ExContext) bool {
 	}
 	ctx.PutCn(cn)
 
-	ec.ConnectionMap.Put(ctx)
+	fmt.Println("Add to ", ctx.User().Name)
+	ec.ConnectionMap.Put(ctx.User().Name, cn)
 	return true
 }

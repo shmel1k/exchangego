@@ -2,22 +2,21 @@ package server
 
 import (
 	"sync"
-
-	"github.com/shmel1k/exchangego/exchange/session/context"
+	"net"
 )
 
 type CnMap struct {
 	lock sync.Mutex
-	cmap map[*context.ExContext]interface{}
+	cmap map[string]net.Conn
 }
 
 func NewConnectionStorage() *CnMap {
 	m := new(CnMap)
-	m.cmap = make(map[*context.ExContext]interface{})
+	m.cmap = make(map[string]net.Conn)
 	return m
 }
 
-func (m *CnMap) GetAndLock() map[*context.ExContext]interface{} {
+func (m *CnMap) GetAndLock() map[string]net.Conn {
 	m.lock.Lock()
 	return m.cmap
 }
@@ -26,13 +25,13 @@ func (m *CnMap) UnLock() {
 	m.lock.Unlock()
 }
 
-func (m *CnMap) Put(c *context.ExContext) {
+func (m *CnMap) Put(c string, conn net.Conn) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-	m.cmap[c] = nil
+	m.cmap[c] = conn
 }
 
-func (m *CnMap) TryRemove(c *context.ExContext) {
+func (m *CnMap) TryRemove(c string) {
 	// TODO remove ctx
 	m.lock.Lock()
 	defer m.lock.Unlock()

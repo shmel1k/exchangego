@@ -7,7 +7,22 @@ import (
 	"github.com/shmel1k/exchangego/base"
 	"github.com/shmel1k/exchangego/currency"
 	"github.com/shmel1k/exchangego/database"
+	"fmt"
+	"github.com/shmel1k/exchangego/broadcast"
+	"encoding/json"
+	"github.com/gobwas/ws/wsutil"
+	"github.com/gobwas/ws"
 )
+
+var localCast *server.EasyCast
+func InitGame(cast *server.EasyCast) {
+	localCast = cast
+}
+
+type updateInfo struct {
+	Status	string 		`json:"status"`
+	Money	int64	 	`json:"money"`
+}
 
 type MoveType string
 const (
@@ -120,12 +135,18 @@ func schedule() error {
 		}
 		var err error
 		for _, v := range playersToUpdate {
+			fmt.Println("test", v)
+
 			g := players.Get(v)
 			mon := v.Money
+
+			var status string
 			if g.startmoney >= curr {
-				mon = mon * 2
+				status = "win"
+				mon = mon + 100
 			} else {
-				mon = mon / 2
+				status = "lost"
+				mon = mon - 100
 			}
 
 			err = database.UpdateMoney(v.ID, mon)
@@ -133,6 +154,23 @@ func schedule() error {
 				return err
 			}
 			players.Delete(v)
+
+			fmt.Println("try to user", v.Name)
+			mapCn := localCast.ConnectionMap.GetAndLock()
+			fmt.Println(mapCn)
+
+			connection := mapCn[v.Name]
+			resp, _ := json.Marshal(updateInfo{
+				Status: status,
+				Money: mon,
+			})
+
+			err := wsutil.WriteServerMessage(connection, ws.OpText, resp)
+			if err != nil {
+				fmt.Println("error!", err)
+			}
+
+			localCast.ConnectionMap.UnLock()
 		}
 		playersToUpdate = playersToUpdate[:0]
 
