@@ -12,5 +12,23 @@
     {{ end }}
 </head>
 <body>
-{{ template "content" }}
+
+<div class="container">
+    <div class="header clearfix" style="margin: 20px;">
+        <nav>
+            <ul class="nav nav-pills float-right">
+                {{ if .IsAuth }}
+                <li class="nav-item">
+                    <a class="panel-body">User: {{ .UserName }}, Balance: <span id="money">{{ .Money }}</span></a>
+                </li>
+                {{ end }}
+            </ul>
+        </nav>
+        <h3 class="text-muted">FairExchange</h3>
+    </div>
+
+    {{ template "content" }}
+
+</div>
+
 </body>

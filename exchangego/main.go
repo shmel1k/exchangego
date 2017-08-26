@@ -23,13 +23,22 @@ func init() {
 	log.Println("Set websocket")
 	currency.InitCurrency()
 	broadCaster = server.NewEasyCast(currency.UpdateCurrency, 1*time.Second, 5)
+	game.InitGame(broadCaster)
 }
 
 func connectWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, err := context.InitFromHTTP(w, r)
 	if err != nil {
 		errs.WriteError(w, err)
+		return
 	}
+
+	err = ctx.InitUserFromCookie()
+	if err != nil {
+		errs.WriteError(w, err)
+		return
+	}
+
 	ok := broadCaster.Subscribe(ctx)
 	if !ok {
 		errs.WriteError(w, errs.Error{

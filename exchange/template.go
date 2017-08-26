@@ -5,6 +5,7 @@ import (
 
 	"github.com/shmel1k/exchangego/exchange/session/context"
 	"github.com/shmel1k/exchangego/base/contextlog"
+	"github.com/shmel1k/exchangego/base/errs"
 )
 
 func PathToName(name string) TemplateType {
@@ -33,6 +34,7 @@ var (
 type TemplateData struct {
 	IsAuth bool
 	UserName string
+	Money int
 
 	ModuleName string
 }
@@ -46,12 +48,25 @@ func ReturnTemplate(ctx *context.ExContext, tmpl TemplateType) {
 		return
 	}
 
+	isAuth := false
+	name := ""
+	money := 0
+	if ctx.User().Name != "" {
+		isAuth = true
+		name = ctx.User().Name
+		money = int(ctx.User().Money)
+	}
+
 	data := TemplateData{
-		IsAuth: true,
-		UserName: "test",
+		IsAuth: isAuth,
+		UserName: name,
+		Money: money,
 
 		ModuleName: tmpl.name,
 	}
 
-	t.ExecuteTemplate(ctx.HTTPResponseWriter(), "index.html", data)
+	err = t.ExecuteTemplate(ctx.HTTPResponseWriter(), "index.html", data)
+	if err != nil {
+		errs.WriteError(ctx.HTTPResponseWriter(), err)
+	}
 }
