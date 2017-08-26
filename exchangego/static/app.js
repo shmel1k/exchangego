@@ -20,6 +20,12 @@ function getRealHost() {
     return window.location.hostname + (window.location.port ? ':'+ window.location.port : '');
 }
 
+window.startGame = function(type) {
+    $.ajax("/game?type=" + type + "&seconds=10", function (e) {
+        alert(e.data);
+    });
+};
+
 function draw(graph) {
     $.plot($("#placeholder"), [graph]);
 }

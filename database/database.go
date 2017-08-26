@@ -143,15 +143,17 @@ func AddUserTransaction(user base.User, moveType string, duration int) (int, err
 	initClient()
 
 	sql_ := "INSERT INTO transactions (user_id, type, ts, duration_s, result) VALUES (?, ?, ?, ?, ?);"
-	_, err := db.Query(sql_, user.ID, moveType, time.Now().Unix(), duration, 0 /* Start Wait */)
+	resp, err := db.Exec(sql_, user.ID, moveType, time.Now().Unix(), duration, 0 /* Start Wait */)
 	if err != nil {
 		log.Printf("failed to insert transaction %q: %s", user, err)
 		return 0, err
 	}
-	/* TODO get transactionId! */
+
+	id, err := resp.LastInsertId()
 
 	/* TODO money */
-	return 0, nil
+
+	return int(id), err
 }
 
 func ChangeStatusTransaction(transactionId int, status int) error {

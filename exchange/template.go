@@ -47,7 +47,7 @@ func ReturnTemplate(ctx *context.ExContext, tmpl TemplateType) {
 	}
 
 	data := TemplateData{
-		IsAuth: false,
+		IsAuth: true,
 		UserName: "test",
 
 		ModuleName: tmpl.name,
