@@ -7,6 +7,7 @@ import (
 	"github.com/shmel1k/exchangego/database"
 	"strconv"
 	"github.com/shmel1k/exchangego/game"
+	"github.com/shmel1k/exchangego/currency"
 )
 
 func getAuthContext(w http.ResponseWriter, r *http.Request) (*context.ExContext, error) {
@@ -84,7 +85,7 @@ func StartGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := database.AddUserTransaction(ctx.User(), string(move), duration)
-	game.AddPlayer(ctx.User(), id, int64(duration), move, int(ctx.User().Money))
+	game.AddPlayer(ctx.User(), id, int64(duration), move, currency.GetCurrency())
 
 	exchange.WriteOK(ctx.HTTPResponseWriter(), nil)
 }

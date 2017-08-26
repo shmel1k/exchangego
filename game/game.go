@@ -91,6 +91,8 @@ func (p *Players) Add(user base.User, transactionID int64, duration int64, move 
 		duration:      duration,
 		end:           time.Now().Unix() + duration,
 		move:          move,
+
+		startmoney: startmoney,
 	}
 
 	return nil
