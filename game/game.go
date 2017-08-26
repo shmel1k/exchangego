@@ -112,6 +112,7 @@ func (p *Players) Delete(user base.User) {
 }
 
 func AddPlayer(user base.User, transactionID int64, duration int64, move MoveType, startmoney int) error {
+	fmt.Println("Save", startmoney, "method", move)
 	return players.Add(user, transactionID, duration, move, startmoney)
 }
 
@@ -127,8 +128,6 @@ func RunScheduler() error {
 func schedule() error {
 	playersToUpdate := make([]base.User, 0, len(players.players))
 	for {
-		curr := currency.GetCurrency()
-
 		t := time.Now().Unix()
 		for k, v := range players.players {
 			if v.end <= t {
@@ -137,18 +136,29 @@ func schedule() error {
 		}
 		var err error
 		for _, v := range playersToUpdate {
-			fmt.Println("test", v)
+			curr := currency.GetCurrency()
+			fmt.Println("Get", curr)
 
 			g := players.Get(v)
 			mon := v.Money
 
 			var status string
-			if g.startmoney >= curr {
-				status = "win"
-				mon = mon + 100
+			if curr >= g.startmoney {
+				if g.move == UpMoveType {
+					status = "win"
+					mon += 100
+				} else {
+					status = "lost"
+					mon -= 100
+				}
 			} else {
-				status = "lost"
-				mon = mon - 100
+				if g.move == DownMoveType {
+					status = "win"
+					mon += 100
+				} else {
+					status = "lost"
+					mon -= 100
+				}
 			}
 
 			err = database.UpdateMoney(v.ID, mon)
